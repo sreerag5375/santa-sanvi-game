@@ -12,6 +12,13 @@ let gameOver = false;
 let gameReady = false;
 let character, pipes, frame, score;
 
+// Player image
+const playerImg = new Image();
+playerImg.src = 'santa-sanvi.png';
+
+const pipeImg = new Image();
+pipeImg.src = 'pipe.png';
+
 // Canvas size
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -38,9 +45,7 @@ function initGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// Player image
-const playerImg = new Image();
-playerImg.src = 'santa-sanvi.png';
+
 
 // Draw player
 function drawCharacter() {
@@ -65,18 +70,25 @@ function drawCharacter() {
 
 // Pipes
 function createPipe() {
-  const gap = canvas.height * 0.45;
+  const gap = canvas.height * 0.40;
   const topHeight = Math.random() * (canvas.height - gap - 200) + 100;
-  pipes.push({ x: canvas.width, top: topHeight, bottom: topHeight + gap, width: 100 });
+  pipes.push({ x: canvas.width, top: topHeight, bottom: topHeight + gap, width: 120 });
 }
 
 function drawPipes() {
-  ctx.fillStyle = '#c40000';
   pipes.forEach(pipe => {
-    ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
-    ctx.fillRect(pipe.x, pipe.bottom, pipe.width, canvas.height - pipe.bottom);
+    // Draw top pipe (flipped vertically)
+    ctx.save();
+    ctx.translate(pipe.x + pipe.width / 2, pipe.top);
+    ctx.scale(1, -1);
+    ctx.drawImage(pipeImg, -pipe.width / 2, 0, pipe.width, pipe.top);
+    ctx.restore();
+
+    // Draw bottom pipe
+    ctx.drawImage(pipeImg, pipe.x, pipe.bottom, pipe.width, canvas.height - pipe.bottom);
   });
 }
+
 
 function updatePipes() {
   pipes.forEach(pipe => (pipe.x -= 3));
@@ -91,21 +103,25 @@ function checkCollision() {
   const centerX = character.x + radius;
   const centerY = character.y + radius;
 
-  // Check if Santa touches top or bottom of the screen
+  // Check if player hits top or bottom of screen
   if (centerY + radius > canvas.height || centerY - radius < 0) return true;
 
-  // Check each pipe
+  // Slight tolerance to avoid early collision (tweakable)
+  const tolerance = 10;
+
   return pipes.some(pipe => {
-    // Check horizontal overlap
-    if (centerX + radius > pipe.x && centerX - radius < pipe.x + pipe.width) {
-      // Check vertical overlap
-      if (centerY - radius < pipe.top || centerY + radius > pipe.bottom) {
+    const pipeLeft = pipe.x + tolerance;
+    const pipeRight = pipe.x + pipe.width - tolerance;
+
+    if (centerX + radius > pipeLeft && centerX - radius < pipeRight) {
+      if (centerY - radius < pipe.top - tolerance || centerY + radius > pipe.bottom + tolerance) {
         return true;
       }
     }
     return false;
   });
 }
+
 
 
 // Game Loop
@@ -127,28 +143,28 @@ function gameLoop() {
   drawCharacter();
 
   // Collision
- if (checkCollision()) {
-  gameOver = true;
-  cancelAnimationFrame(animationId);
+  if (checkCollision()) {
+    gameOver = true;
+    cancelAnimationFrame(animationId);
 
-  // Overlay background
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Overlay background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Game Over Text
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 60px Comic Sans MS';
-  ctx.textAlign = 'center';
-  ctx.fillText(' Game Over', canvas.width / 2, canvas.height / 2 - 40);
+    // Game Over Text
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 30px Comic Sans MS';
+    ctx.textAlign = 'center';
+    ctx.fillText(' Game Over', canvas.width / 2, canvas.height / 2 - 40);
 
-  // Final Score
-  ctx.font = 'bold 40px Comic Sans MS';
-  ctx.fillText(`Your Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+    // Final Score
+    ctx.font = 'bold 40px Comic Sans MS';
+    ctx.fillText(`Your Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
 
-  // Show Restart Button
-  gameOverBtn.style.display = 'block';
-  return;
-}
+    // Show Restart Button
+    gameOverBtn.style.display = 'block';
+    return;
+  }
 
   // HUD update
   scoreDisplay.textContent = `Score: ${score}`;
@@ -207,7 +223,7 @@ function startGame() {
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 36px Comic Sans MS';
         ctx.textAlign = 'center';
-        ctx.fillText('Press SPACE or CLICK to Start 🎅', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('CLICK to Start 🎅', canvas.width / 2, canvas.height / 2);
 
         gameReady = true;
       }
