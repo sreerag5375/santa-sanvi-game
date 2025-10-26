@@ -136,3 +136,8 @@ canvas {
 .gameover-btn:hover {
   background: #ff0000;
 }
+
+
+.gameover-btn {
+  top: 60%;
+}

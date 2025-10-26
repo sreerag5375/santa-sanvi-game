@@ -9,6 +9,7 @@ const gameOverBtn = document.getElementById('gameover-restart');
 let animationId = null;
 let gameStarted = false;
 let gameOver = false;
+let gameReady = false;
 let character, pipes, frame, score;
 
 // Canvas size
@@ -37,44 +38,9 @@ function initGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// Start game
-function startGame() {
-  const loadingText = document.getElementById('loading-text');
-  startBtn.disabled = true;
-  startBtn.querySelector('.front').textContent = 'Loading...';
-  loadingText.style.display = 'block';
-
-  const assets = ['game-bg.png', 'santa-sanvi.png'];
-  let loaded = 0;
-
-  assets.forEach(src => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      loaded++;
-      if (loaded === assets.length) {
-        // Hide loading, show game
-        splash.style.display = 'none';
-        canvas.style.display = 'block';
-        hud.style.display = 'flex';
-        startBtn.disabled = false;
-        startBtn.querySelector('.front').textContent = 'Start Game';
-        loadingText.style.display = 'none';
-
-        gameStarted = true;
-        cancelAnimationFrame(animationId);
-        initGame();
-        gameLoop();
-      }
-    };
-  });
-}
-
-
 // Player image
 const playerImg = new Image();
 playerImg.src = 'santa-sanvi.png';
-
 
 // Draw player
 function drawCharacter() {
@@ -87,7 +53,6 @@ function drawCharacter() {
   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
   ctx.closePath();
   ctx.clip();
-
   ctx.drawImage(playerImg, centerX - radius, centerY - radius, character.width, character.height);
   ctx.restore();
 
@@ -122,13 +87,26 @@ function updatePipes() {
 }
 
 function checkCollision() {
-  if (character.y + character.height > canvas.height || character.y < 0) return true;
-  return pipes.some(pipe =>
-    character.x + character.width > pipe.x &&
-    character.x < pipe.x + pipe.width &&
-    (character.y < pipe.top || character.y + character.height > pipe.bottom)
-  );
+  const radius = character.width / 2;
+  const centerX = character.x + radius;
+  const centerY = character.y + radius;
+
+  // Check if Santa touches top or bottom of the screen
+  if (centerY + radius > canvas.height || centerY - radius < 0) return true;
+
+  // Check each pipe
+  return pipes.some(pipe => {
+    // Check horizontal overlap
+    if (centerX + radius > pipe.x && centerX - radius < pipe.x + pipe.width) {
+      // Check vertical overlap
+      if (centerY - radius < pipe.top || centerY + radius > pipe.bottom) {
+        return true;
+      }
+    }
+    return false;
+  });
 }
+
 
 // Game Loop
 function gameLoop() {
@@ -149,30 +127,113 @@ function gameLoop() {
   drawCharacter();
 
   // Collision
-  if (checkCollision()) {
-    gameOver = true;
-    cancelAnimationFrame(animationId);
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 40px Comic Sans MS';
-    ctx.textAlign = 'center';
-    ctx.fillText('🎅 Game Over 🎄', canvas.width / 2, canvas.height / 2);
-    gameOverBtn.style.display = 'block';
-    return;
-  }
+ if (checkCollision()) {
+  gameOver = true;
+  cancelAnimationFrame(animationId);
+
+  // Overlay background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Game Over Text
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 60px Comic Sans MS';
+  ctx.textAlign = 'center';
+  ctx.fillText(' Game Over', canvas.width / 2, canvas.height / 2 - 40);
+
+  // Final Score
+  ctx.font = 'bold 40px Comic Sans MS';
+  ctx.fillText(`Your Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+
+  // Show Restart Button
+  gameOverBtn.style.display = 'block';
+  return;
+}
 
   // HUD update
   scoreDisplay.textContent = `Score: ${score}`;
   frame++;
 }
 
+// Countdown before start
+function startCountdown(callback) {
+  const countdownNumbers = ['3', '2', '1', 'START!'];
+  let index = 0;
+
+  function showNext() {
+    if (index < countdownNumbers.length) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 100px Comic Sans MS';
+      ctx.textAlign = 'center';
+      ctx.fillText(countdownNumbers[index], canvas.width / 2, canvas.height / 2);
+      index++;
+      setTimeout(showNext, 700);
+    } else {
+      callback();
+    }
+  }
+
+  showNext();
+}
+
+// Start game (preload assets)
+function startGame() {
+  const loadingText = document.getElementById('loading-text');
+  startBtn.disabled = true;
+  startBtn.querySelector('.front').textContent = 'Loading...';
+  loadingText.style.display = 'block';
+
+  const assets = ['game-bg.png', 'santa-sanvi.png'];
+  let loaded = 0;
+
+  assets.forEach(src => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      loaded++;
+      if (loaded === assets.length) {
+        splash.style.display = 'none';
+        canvas.style.display = 'block';
+        hud.style.display = 'flex';
+        startBtn.disabled = false;
+        startBtn.querySelector('.front').textContent = 'Start Game';
+        loadingText.style.display = 'none';
+
+        cancelAnimationFrame(animationId);
+        initGame();
+
+        // Show “Press to start” message
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 36px Comic Sans MS';
+        ctx.textAlign = 'center';
+        ctx.fillText('Press SPACE or CLICK to Start 🎅', canvas.width / 2, canvas.height / 2);
+
+        gameReady = true;
+      }
+    };
+  });
+}
+
 // Controls
 window.addEventListener('keydown', e => {
-  if (e.code === 'Space' && !gameOver) character.velocity = character.lift;
+  if (e.code === 'Space') {
+    if (!gameStarted && gameReady) {
+      gameStarted = true;
+      startCountdown(() => gameLoop());
+    } else if (!gameOver) {
+      character.velocity = character.lift;
+    }
+  }
 });
+
 canvas.addEventListener('click', () => {
-  if (!gameOver) character.velocity = character.lift;
+  if (!gameStarted && gameReady) {
+    gameStarted = true;
+    startCountdown(() => gameLoop());
+  } else if (!gameOver) {
+    character.velocity = character.lift;
+  }
 });
 
 // Restart
