@@ -19,6 +19,9 @@ playerImg.src = 'santa-sanvi.png';
 const pipeImg = new Image();
 pipeImg.src = 'pipe.png';
 
+const bgMusic = document.getElementById('bg-music');
+bgMusic.volume = 0.4;
+
 // Canvas size
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -144,6 +147,9 @@ function gameLoop() {
 
   // Collision
   if (checkCollision()) {
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+
     gameOver = true;
     cancelAnimationFrame(animationId);
 
@@ -153,7 +159,7 @@ function gameLoop() {
 
     // Game Over Text
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 30px Comic Sans MS';
+    ctx.font = 'bold 60px Comic Sans MS';
     ctx.textAlign = 'center';
     ctx.fillText(' Game Over', canvas.width / 2, canvas.height / 2 - 40);
 
@@ -226,10 +232,16 @@ function startGame() {
         ctx.fillText('CLICK to Start 🎅', canvas.width / 2, canvas.height / 2);
 
         gameReady = true;
+
+        // 🎵 Start background music safely
+        bgMusic.play().catch(() => {
+          document.addEventListener('click', () => bgMusic.play(), { once: true });
+        });
       }
     };
   });
 }
+
 
 // Controls
 window.addEventListener('keydown', e => {
