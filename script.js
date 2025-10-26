@@ -150,6 +150,11 @@ function gameLoop() {
     bgMusic.pause();
     bgMusic.currentTime = 0;
 
+    // 📳 Vibrate on crash (mobile only)
+    if ('vibrate' in navigator) {
+      navigator.vibrate([100, 50, 150]);
+    }
+
     gameOver = true;
     cancelAnimationFrame(animationId);
 
