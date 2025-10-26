@@ -39,18 +39,42 @@ function initGame() {
 
 // Start game
 function startGame() {
-  splash.style.display = 'none';
-  canvas.style.display = 'block';
-  hud.style.display = 'flex';
-  gameStarted = true;
-  cancelAnimationFrame(animationId);
-  initGame();
-  gameLoop();
+  const loadingText = document.getElementById('loading-text');
+  startBtn.disabled = true;
+  startBtn.querySelector('.front').textContent = 'Loading...';
+  loadingText.style.display = 'block';
+
+  const assets = ['game-bg.png', 'santa-sanvi.png'];
+  let loaded = 0;
+
+  assets.forEach(src => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      loaded++;
+      if (loaded === assets.length) {
+        // Hide loading, show game
+        splash.style.display = 'none';
+        canvas.style.display = 'block';
+        hud.style.display = 'flex';
+        startBtn.disabled = false;
+        startBtn.querySelector('.front').textContent = 'Start Game';
+        loadingText.style.display = 'none';
+
+        gameStarted = true;
+        cancelAnimationFrame(animationId);
+        initGame();
+        gameLoop();
+      }
+    };
+  });
 }
+
 
 // Player image
 const playerImg = new Image();
 playerImg.src = 'santa-sanvi.png';
+
 
 // Draw player
 function drawCharacter() {

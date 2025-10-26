@@ -20,7 +20,8 @@ html, body {
   background-size: cover;
   background-repeat: repeat-x;
   background-position: 0 0;
-  animation: scroll-bg 25s linear infinite;
+  animation: scroll-bg 40s linear infinite;
+
 }
 
 @keyframes scroll-bg {
