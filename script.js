@@ -214,6 +214,10 @@ function startGame() {
   const assets = ['game-bg.png', 'santa-sanvi.png'];
   let loaded = 0;
 
+  if ('vibrate' in navigator) {
+    navigator.vibrate(40); // short gentle vibration
+  }
+
   assets.forEach(src => {
     const img = new Image();
     img.src = src;
