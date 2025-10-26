@@ -141,3 +141,12 @@ canvas {
 .gameover-btn {
   top: 60%;
 }
+
+
+#lottie-loader {
+  display: none; /* Initially hidden */
+  width: 220px;
+  height: 220px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}

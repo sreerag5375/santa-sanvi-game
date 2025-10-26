@@ -2,6 +2,9 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const splash = document.getElementById('splash-screen');
 const startBtn = document.getElementById('start-btn');
+const lottieLoader = document.getElementById('lottie-loader');
+const loadingText = document.getElementById('loading-text');
+
 const hud = document.getElementById('hud');
 const scoreDisplay = document.getElementById('score');
 const gameOverBtn = document.getElementById('gameover-restart');
@@ -28,6 +31,22 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
+
+function showLoader() {
+  // Ensure both Lottie animation and loading text are shown
+  lottieLoader.style.display = 'block';
+  loadingText.style.display = 'none'; // Hide "Loading assets..." text
+
+  // Load Lottie animation
+  const animation = lottie.loadAnimation({
+    container: lottieLoader,  // Ensure this references the correct DOM element
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    path: 'loading.json'  // Ensure the path is correct
+  });
+}
+
 
 // Init game
 function initGame() {
@@ -209,7 +228,10 @@ function startGame() {
   const loadingText = document.getElementById('loading-text');
   startBtn.disabled = true;
   startBtn.querySelector('.front').textContent = 'Loading...';
-  loadingText.style.display = 'block';
+  loadingText.style.display = 'none'; // Hide loading text
+
+  // Show Lottie animation
+  showLoader(); // Ensure Lottie animation shows
 
   const assets = ['game-bg.png', 'santa-sanvi.png'];
   let loaded = 0;
@@ -218,18 +240,22 @@ function startGame() {
     navigator.vibrate(40); // short gentle vibration
   }
 
+  // Load assets
   assets.forEach(src => {
     const img = new Image();
     img.src = src;
     img.onload = () => {
       loaded++;
       if (loaded === assets.length) {
+        // Once assets are loaded, hide the loader and start the game
+        lottieLoader.style.display = 'none'; // Hide Lottie animation
+        loadingText.style.display = 'none'; // Hide loading text
+
         splash.style.display = 'none';
         canvas.style.display = 'block';
         hud.style.display = 'flex';
         startBtn.disabled = false;
         startBtn.querySelector('.front').textContent = 'Start Game';
-        loadingText.style.display = 'none';
 
         cancelAnimationFrame(animationId);
         initGame();
@@ -250,6 +276,9 @@ function startGame() {
     };
   });
 }
+
+
+
 
 
 // Controls
@@ -274,5 +303,9 @@ canvas.addEventListener('click', () => {
 });
 
 // Restart
-startBtn.addEventListener('click', startGame);
+startBtn.addEventListener('click', () => {
+  showLoader(); // Show Lottie loader when the button is clicked
+  startGame(); // Start the game after assets are preloaded
+});
+
 gameOverBtn.addEventListener('click', () => window.location.reload());

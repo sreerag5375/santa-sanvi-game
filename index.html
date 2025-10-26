@@ -6,16 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Santa Sanvi</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
 </head>
 
 <body>
-  
+
   <!-- 🌄 Background container -->
   <div id="game-bg">
     <canvas id="gameCanvas"></canvas>
   </div>
 
-  <!-- 🎅 Splash Screen -->
   <div id="splash-screen">
     <img src="sanvi.png" alt="Santa Sanvi" />
     <div>
@@ -26,7 +26,10 @@
       <span class="front">Start Game</span>
     </button>
     <p id="loading-text" style="display:none; color:#cc0000;">Loading assets...</p>
+    <!-- Lottie Loader -->
+    <div id="lottie-loader" style="display:none; width: 220px; height: 220px;"></div> <!-- Make sure this is present -->
   </div>
+
 
   <!-- 🧭 Game HUD -->
   <div id="hud">
